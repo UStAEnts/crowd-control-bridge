@@ -1,0 +1,22 @@
+{
+  "name": "crowd-control-bridge",
+  "version": "1.0.0",
+  "description": "Second version of [Crowd Control](https://github.com/UStAEnts/crowd-control) backend, converting lighting commands from the frontend to ArtNet.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/UStAEnts/crowd-control-bridge"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  },
+  "dependencies": {
+    "artnet": "^1.4.0",
+    "express": "^4.19.2"
+  }
+}
