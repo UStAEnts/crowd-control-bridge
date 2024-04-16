@@ -17,6 +17,6 @@
   },
   "dependencies": {
     "artnet": "^1.4.0",
-    "express": "^4.19.2"
+    "logger": "git+https://gitlab.com/vitineth/logger.git"
   }
 }
