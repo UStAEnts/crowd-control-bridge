@@ -2,6 +2,7 @@
 var fixtures = {
     "150s": {
         name: "StAge beams",
+        profile: "150.js",
         maxIntensity: 255,
         colour: {
             deepRed: ["Deep Red", "219.4.4", "db0404"],
@@ -32,25 +33,16 @@ var fixtures = {
             position: "home",
             effect: "clear"
         },
-        // TODO: Should this be in format 0.1 or in object form?
-        patch: [
-            {
-                universe: 0,
-                address: 1
-            },
-            {
-                universe: 0,
-                address: 23
-            },
-            {
-                universe: 0,
-                address: 45
-            }
-        ]
+        patch: {
+            26: [1, 23, 45, 67, 89, 111, 133, 155],
+            24: [282, 162, 140, 184, 206, 260],
+            25: [190, 168, 146, 124, 80, 102]
+        }
     },
     
     "spikies": {
         name: "Pole beams",
+        profile: "spikie.js",
         maxIntensity: 50,
         colour: {
             deepRed: ["Deep Red", "219.4.4", "db0404"],
@@ -80,11 +72,15 @@ var fixtures = {
             colour: "blue",
             position: "home",
             effect: "clear"
+        },
+        patch: {
+            16: [1, 28, 433, 82, 109, 136, 163, 190, 217, 244, 271, 298, 325, 352, 379, 406]
         }
     },
 
     "r1s-club": {
         name: "Club beams",
+        profile: "r1.js",
         maxIntensity: 100,
         colour: {
             red: ["Red", "red", "ff0000"],
@@ -108,11 +104,15 @@ var fixtures = {
             colour: "blue",
             position: "home",
             effect: "clear"
+        },
+        patch: {
+            14: [49, 68, 87, 106, 125, 144, 163, 182]
         }
     },
 
     "tube-lines": {
         name: "Columns",
+        profile: "titantube.js",
         maxIntensity: 75,
         colour: {
             deepRed: ["Deep Red", "219.4.4", "db0404"],
@@ -141,11 +141,15 @@ var fixtures = {
             colour: "blue",
             position: "home",
             effect: "clear"
+        },
+        patch: {
+            3: [1, 33, 65, 97, 129, 161, 193, 225, 257, 289, 321, 353]
         }
     },
 
     "tube-triangle": {
         name: "Triangle",
+        profile: "titantube.js",
         maxIntensity: 75,
         colour: {
             deepRed: ["Deep Red", "219.4.4", "db0404"],
@@ -174,11 +178,15 @@ var fixtures = {
             colour: "blue",
             position: "home",
             effect: "clear"
+        },
+        patch: {
+            3: [385, 417, 449]
         }
     },
     
     "stage-bars": {
         name: "House wash",
+        profile: "beambar.js",
         maxIntensity: 100,
         colour: {
             deepRed: ["Deep Red", "219.4.4.0", "db0404"],
@@ -207,6 +215,16 @@ var fixtures = {
             colour: "blue",
             position: "home",
             effect: "clear"
+        },
+        patch: {
+            20: [80],
+            21: [20, 80],
+            22: [36, 96],
+            23: [36],
+            24: [20, 80],
+            25: [20]
         }
     }
 };
+
+module.exports = fixtures;
