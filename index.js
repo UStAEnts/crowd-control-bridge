@@ -1,17 +1,30 @@
-// host web server
-// Description: This file is the entry point for the web server. It creates an express app and listens on port 3000.
-const express = require('express');
-const app = express();
-const PORT = 3000;
+const config = require('./config');
 
-app.get('/', (req, res) => {
-    res.send('Hello World!');
-});
+// sends configuration to the frontend
+function sendConfig() {
+    // generate config to send to the frontend
+    let postData = new FormData();
+    postData.append('offline', false);
+    postData.append('fixtures', JSON.stringify(require('./fixtures')));
 
-app.listen(PORT, () => {
-    console.log(`Example app listening at http://localhost:${PORT}`);
-});
+    // make post request to front end to send config data
+    fetch (`${config.crowdcontrolServer}/receiveConfig.php`, {
+        method: 'POST',
+        body: postData,
+        
+    }).then((res) => {
+        console.log(`statusCode: ${res.statusCode}`);
+        return res.text();
+    }).then((data) => {
+        console.log(data);
+    })
+    .catch((error) => {
+        console.error(error);
+    });
+        
+}
 
+
+sendConfig();
 const lighting = require('./lighting');
-
-lighting();
+//lighting();
