@@ -1,7 +1,6 @@
 var config = {
-    lightingInterface: "10.1.30.120",
-    crowdcontrolServer: "https://crowdcontrol.entscrew.net/",
-    controlInterfacePort: 3000
+    lightingInterface: "172.18.0.13",
+    crowdcontrolServer: "http://127.0.0.1:3001",
 }
 
 module.exports = config;
