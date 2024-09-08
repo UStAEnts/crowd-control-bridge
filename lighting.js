@@ -5,6 +5,7 @@
 const config = require('./config');
 const _ = require('logger');
 const fs = require('fs/promises');
+const axios = require('axios');
 const { join } = require('path');
 const { handle } = require('express/lib/application');
 
@@ -42,10 +43,11 @@ async function loadFixtures() {
         _.trace(`registering ${fixture.name} with addresses ${fixture.patch}`);
 
         const entries = fixture.patch;
-
+        console.log("PREFIX OPTION: " + group);
         if (!Object.values(entries).map((e) => Array.isArray(e)).reduce((prev, cur) => prev && cur)) {
             for (const [prefix, addressConfig] of Object.entries(entries)) {
-                const {convert, commands} = require(join(__dirname, 'fixture-profiles', fixture.profile))(prefix, addressConfig, effects);
+                
+                const {convert, commands} = require(join(__dirname, 'fixture-profiles', fixture.profile))(group, addressConfig, effects);
                 mergers.push(convert);
                 COMMANDS.push(...commands);
                 _.trace('Adding commands: ', commands);
@@ -59,7 +61,6 @@ async function loadFixtures() {
     }
 
     _.trace('all profiles loaded, final commands:');
-    //console.trace(COMMANDS);
 }
 
 /**
@@ -92,14 +93,16 @@ async function enableAnimators() {
  * @returns {Promise<void>}
  */
 async function fetchCommands() {
-    await fetch(`${config.crowdcontrolServer}/getLightRequests.php`)
-        .then(response => response.json())
-        .then(data => {
-            console.log(data);
-            data.forEach((command) => {
-                handleCommand(command);
-            });
+
+    axios.get(`${config.crowdcontrolServer}/getLightRequests.php`)
+    .then((response) => {
+        response.data.forEach((command) => {
+            handleCommand(command);
         });
+    })
+    .catch((error) => {
+        console.error("Fetch Error:", error);
+    });
 }
 
 let activeCommands = [];
@@ -155,10 +158,8 @@ const lastOutgoingData = {};
  * Sends artnet data based on the activeCommands
  */
 function sendArtnetUpdate() {
-    console.log("update artnet");
-
     // TODO: determine what universes to send to based on config from somewhere
-    for (let universe = 0; universe < 26; universe++) {
+    for (let universe = 0; universe < 50; universe++) {
         const commands = activeCommands
             .map((command) => mergers.map((merger) => merger(universe, command)))
             .flat()
@@ -191,14 +192,16 @@ const artnet = require('artnet')(options);
 
 
 module.exports = async () => {
-    console.log('Lighting module initialized');
+    console.log("Lighting module initialized");
 
     await loadFixtures()
         .then(enableAnimators)
         .catch(console.error);
 
-    setInterval(fetchCommands, 1000);
+    console.log("Begin fetching commands");
+    setInterval(fetchCommands, 100);
 
-    setInterval(sendArtnetUpdate, 100);
+    console.log("Begin outputting artnet")
+    setInterval(sendArtnetUpdate, 1);
     
 }
