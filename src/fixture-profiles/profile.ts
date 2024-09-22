@@ -82,7 +82,7 @@ export class ChannelUniverse<T extends Record<string, number>> {
   assignMany(patches: number[], channels: Partial<Record<keyof T, number>>) {
     patches.forEach((a) =>
       pureEntries(channels).forEach((entry) => {
-        if (entry && entry[0] && entry[1]) {
+        if (entry && entry[0] !== undefined && entry[1] !== undefined) {
           this.assignChannel(a, entry[0], entry[1]);
         }
       }),
