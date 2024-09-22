@@ -1,3 +1,5 @@
+import { pureEntries } from "../util";
+
 export type Patch = Record<number, number[]>;
 
 /**
@@ -35,14 +37,6 @@ export function channelsForUniverse(
   universe: number,
 ): number[] {
   return patch[universe] ?? [];
-}
-
-type Entries<T> = {
-  [K in keyof T]: [K, T[K]];
-}[keyof T][];
-
-function pureEntries<T extends object>(entity: T): Entries<T> {
-  return Object.entries(entity) as unknown as Entries<T>;
 }
 
 export class Universe {
