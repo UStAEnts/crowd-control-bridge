@@ -172,12 +172,11 @@ function sendArtnetUpdate() {
   }
 }
 
-var options = {
+const artnet = require("artnet")({
   iface: config.lightingInterface,
-};
-const artnet = require("artnet")(options);
+});
 
-module.exports = async () => {
+export default async () => {
   console.log("Lighting module initialized");
 
   await loadFixtures().then(enableAnimators).catch(console.error);

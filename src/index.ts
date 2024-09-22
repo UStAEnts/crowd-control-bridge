@@ -1,12 +1,14 @@
-const config = require("./config");
-const axios = require("axios");
+import config from "./config";
+import lighting from "./lighting";
+import axios from "axios";
+import fixtures from "./fixtures";
 
 // sends configuration to the frontend
 function sendConfig() {
   // generate config to send to the frontend
   let postData = new FormData();
-  postData.append("offline", false);
-  postData.append("fixtures", JSON.stringify(require("./fixtures")));
+  postData.append("offline", "false");
+  postData.append("fixtures", JSON.stringify(fixtures));
 
   // post config data to frontend
   axios
@@ -21,5 +23,5 @@ function sendConfig() {
 }
 
 sendConfig();
-const lighting = require("./lighting");
-lighting();
+
+void lighting();

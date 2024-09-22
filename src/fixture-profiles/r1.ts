@@ -5,7 +5,7 @@ import {
   Patch,
 } from "./profile";
 
-const _ = require("logger");
+import * as _ from "logger";
 
 const home = {
   PAN: 128,

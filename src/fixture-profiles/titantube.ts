@@ -5,7 +5,7 @@ import {
   Universe,
 } from "./profile";
 
-const _ = require("logger");
+import * as _ from "logger";
 
 const channels: Record<number, Record<string, number>> = {
   0: {
