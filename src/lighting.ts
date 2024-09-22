@@ -2,13 +2,14 @@
   Lighting module - controls lighting via ArtNet, by fetching commands from the server
 */
 
-const config = require("./config");
-const _ = require("logger");
-const fs = require("fs/promises");
-const axios = require("axios");
-const { join } = require("path");
-const { handle } = require("express/lib/application");
-const animationEffects = require("./animators");
+import config from "./config";
+import * as _ from "logger";
+import axios from "axios";
+import animatedEffects from "./animators";
+import fixtures from "./fixtures";
+import { Processor } from "./fixture-profiles/profile";
+import { Animator } from "./animators/animator";
+import { pureEntries } from "./util";
 
 /**
  * Set the minimum log level to BASE (the lowest level) so we see everything.
@@ -17,78 +18,59 @@ _.setMinimumLevel(_.LogLevel.BASE);
 
 /**
  * The set of acceptable commands from the server
- * @type {string|RegExp[]}
  */
-let COMMANDS = [];
+let COMMANDS: (string | RegExp)[] = [];
 /**
  * The enabled merge controllers for different fixtures, each function should take a command and return an object of
  * DMX data
  * @type {Function[]}
  */
-const mergers = [];
+const mergers: Processor[] = [];
 
 /**
  * An object containing the output of currently running animations. The result of each animator is determined by itself
  * so only use effects you know the result of
- * @type {{}}
  */
-const effects = {};
+const effects: Record<string, number> = {};
 
 /**
  * Loads all the fixture profiles and binds them to the addresses specified in the addresses object
- * @returns {Promise<void>}
  */
 async function loadFixtures() {
-  const fixtures = require("./fixtures");
   for (const [group, fixture] of Object.entries(fixtures)) {
     _.trace(`registering ${fixture.name} with addresses ${fixture.patch}`);
 
-    const entries = fixture.patch;
-    console.log("PREFIX OPTION: " + group);
-    if (
-      !Object.values(entries)
-        .map((e) => Array.isArray(e))
-        .reduce((prev, cur) => prev && cur)
-    ) {
-      for (const [prefix, addressConfig] of Object.entries(entries)) {
-        const { convert, commands } = require(
-          join(__dirname, "fixture-profiles", fixture.profile),
-        )(group, addressConfig, effects);
-        mergers.push(convert);
-        COMMANDS.push(...commands);
-        _.trace("Adding commands: ", commands);
-      }
-    } else {
-      const { convert, commands } = require(
-        join(__dirname, "fixture-profiles", fixture.profile),
-      )(undefined, entries, effects);
-      mergers.push(convert);
-      COMMANDS.push(...commands);
-      _.trace("Adding commands: ", commands);
-    }
+    const { processor, commands } = fixture.profile(
+      group,
+      fixture.patch,
+      effects,
+    );
+    mergers.push(processor);
+    COMMANDS.push(...commands);
+
+    _.trace("Adding commands: ", commands);
   }
 
-  _.trace("all profiles loaded, final commands:");
+  _.trace("all profiles loaded, final commands:", COMMANDS);
 }
 
 /**
  * Starts executing all animators. Animators are stati
  * Finds all animator files and requires them pushing their executors and creating the initial values in the effects
  * object. Animator functions will be called every 10ms.
- * @returns {Promise<void>}
  */
 async function enableAnimators() {
   let animationTime = 0;
-  let animators = [];
+  let animators: Animator[] = [];
 
   const animationHandler = () => {
     if (++animationTime > 255) animationTime = 0;
 
-    animators.forEach((f) => f(animationTime, effects));
+    animators.forEach((f) => (effects[f.identifier] = f(animationTime)));
   };
   setInterval(animationHandler, 10);
 
-  animationEffects.forEach((v) => {
+  animatedEffects.forEach((v) => {
     animators.push(v);
     effects[v.identifier] = v.initial ?? 0;
   });
@@ -96,13 +78,12 @@ async function enableAnimators() {
 
 /**
  * Fetches commands from the server and processes them.
- * @returns {Promise<void>}
  */
 async function fetchCommands() {
   axios
     .get(`${config.crowdcontrolServer}/getLightRequests.php`)
     .then((response) => {
-      response.data.forEach((command) => {
+      response.data.forEach((command: string) => {
         handleCommand(command);
       });
     })
@@ -111,17 +92,15 @@ async function fetchCommands() {
     });
 }
 
-let activeCommands = [];
+let activeCommands: string[] = [];
 
 /**
  * Handles an incoming message from server. It will check the command against the list of possible
  * acceptable commands (without a '-' symbol if present). It will remove the command if it is prefixed with '-' and if
  * not it will replace all conflicting commands (with the same two part prefix) to prevent overlapping instructions. If
  * it is not found or accepted it will reject it.
- * @param command
- * @returns
  */
-function handleCommand(command) {
+function handleCommand(command: string) {
   const test = command.startsWith("-") ? command.substring(1) : command;
   const matched = COMMANDS.map((e) =>
     typeof e === "string"
@@ -149,7 +128,7 @@ function handleCommand(command) {
   const [key, action] = command.split(".");
   const conflictKey = `${key}.${action}`;
   // const conflictKey = command.substr(0, command.lastIndexOf('.') + 1);
-  const resultant = [].concat(
+  const resultant = ([] as string[]).concat(
     // All active commands that conflict
     activeCommands.filter((e) => !e.startsWith(conflictKey)),
     // Plus the new command
@@ -164,7 +143,7 @@ function handleCommand(command) {
   console.trace(activeCommands);
 }
 
-const lastOutgoingData = {};
+const lastOutgoingData: Record<number, number[]> = {};
 
 /**
  * Sends artnet data based on the activeCommands
@@ -183,7 +162,7 @@ function sendArtnetUpdate() {
     // array of each channel value in universe
     var dmx = lastOutgoingData[universe] ?? Array(512).fill(0);
 
-    Object.keys(commands).forEach((k) => {
+    pureEntries(commands).forEach(([k, _]) => {
       dmx[k] = commands[k];
     });
 
