@@ -40,6 +40,14 @@ async function loadFixtures() {
   for (const [group, fixture] of Object.entries(fixtures)) {
     _.trace(`registering ${fixture.name} with addresses ${fixture.patch}`);
 
+    let fixedPatch = fixture.patch;
+    if (config.mapAddress1To0) {
+      fixedPatch = {};
+      pureEntries(fixture.patch).forEach(([key, value]) => {
+        fixedPatch[key] = value.map((e) => e - 1);
+      });
+    }
+
     const { processor, commands } = fixture.profile(
       group,
       fixture.patch,
