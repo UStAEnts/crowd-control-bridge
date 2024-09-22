@@ -18,6 +18,8 @@ export type FixtureDefinition = {
   patch: Record<number, number[]>;
 };
 
+export type FixtureConfiguration = Record<string, FixtureDefinition>;
+
 const oneFifties: FixtureDefinition = {
   name: "StAge beams",
   profile: oneFiftyProfile,
@@ -207,7 +209,7 @@ const houseWash: FixtureDefinition = {
   },
 };
 
-const fixtures: Record<string, FixtureDefinition> = {
+const fixtures: FixtureConfiguration = {
   "150s": oneFifties,
   spikies: spikies,
   "r1s-club": r1sClub,
