@@ -52,6 +52,14 @@ export class Universe {
     this._data[patch + offset] = value & 0xff;
   }
 
+  assignMany(patches: number[], offsetValues: Record<number, number>) {
+    patches.forEach((a) =>
+      (Object.entries(offsetValues) as [number, number][]).forEach((entry) =>
+        this.assign8Bit(a, entry[0], entry[1]),
+      ),
+    );
+  }
+
   toData(): Record<number, number> {
     return this._data;
   }
