@@ -60,7 +60,7 @@ const gobo1 = {
 
 // 3.53 = 9 * x
 
-module.exports = function (prefix, addresses, effects) {
+export default function (prefix, addresses, effects) {
   prefix = prefix || "r1";
 
   _.trace(`initialised r1s with prefix "${prefix}"`, addresses);
@@ -185,4 +185,4 @@ module.exports = function (prefix, addresses, effects) {
       new RegExp(`${prefix}\\.intensity\\.[0-9]+`),
     ],
   } satisfies GeneratedProfile;
-} satisfies Profile;
+}

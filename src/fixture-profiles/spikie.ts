@@ -39,7 +39,7 @@ const channels = {
 
 // 3.53 = 9 * x
 
-module.exports = function (prefix, addresses, effects) {
+export default function (prefix, addresses, effects) {
   prefix = prefix || "spikies";
 
   _.trace(`initialised spikie with prefix "${prefix}"`, addresses);
@@ -147,4 +147,4 @@ module.exports = function (prefix, addresses, effects) {
       new RegExp(`${prefix}\\.colour\\.[0-9]+\\.[0-9]+\\.[0-9]+(\\.[0-9]+)?`),
     ],
   } satisfies GeneratedProfile;
-} satisfies Profile;
+}

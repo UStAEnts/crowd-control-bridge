@@ -18,7 +18,7 @@ const channels = {
 
 const cells = 10;
 
-module.exports = function (prefix, addresses) {
+export default function (prefix, addresses) {
   prefix = prefix || "bars";
 
   _.trace(`initialised beambar with prefix "${prefix}"`, addresses);
@@ -107,4 +107,4 @@ module.exports = function (prefix, addresses) {
       new RegExp(`${prefix}\\.colour\\.[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+`),
     ],
   } satisfies GeneratedProfile;
-} satisfies Profile;
+}

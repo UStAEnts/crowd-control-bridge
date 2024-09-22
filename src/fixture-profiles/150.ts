@@ -32,7 +32,7 @@ const channels = {
   INTENSITY_FINE: 21,
 } as const;
 
-module.exports = function (prefix, addresses, effects) {
+export default function (prefix, addresses, effects) {
   prefix = prefix || "150s";
 
   _.trace(`initialised 150s with prefix "${prefix}"`, addresses);
@@ -134,4 +134,4 @@ module.exports = function (prefix, addresses, effects) {
       new RegExp(`${prefix}\\.colour\\.[0-9]+\\.[0-9]+\\.[0-9]+(\\.[0-9]+)?`),
     ],
   } satisfies GeneratedProfile;
-} satisfies Profile;
+}

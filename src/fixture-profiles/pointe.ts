@@ -43,7 +43,7 @@ const colors = {
   UV: 119,
 };
 
-module.exports = function (prefix, addresses, effects) {
+export default function (prefix, addresses, effects) {
   prefix = prefix || "robe";
 
   _.trace(`initialised pointe with prefix "${prefix}"`, addresses);
@@ -137,4 +137,4 @@ module.exports = function (prefix, addresses, effects) {
       new RegExp(`${prefix}\\.intensity\\.[0-9]+`),
     ],
   } satisfies GeneratedProfile;
-} satisfies Profile;
+}
