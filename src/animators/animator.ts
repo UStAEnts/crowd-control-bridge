@@ -4,13 +4,17 @@
  * time steps are consistent, or even move positively.
  */
 export type Animator = ((t: number) => number) & {
-    identifier: string,
-    initial?: number,
+  identifier: string;
+  initial?: number;
 };
 
-export function animator(identifier: string, executor: ((t: number) => number), initial: number = 0): Animator {
-    return Object.assign(executor, {
-        identifier,
-        initial,
-    });
+export function animator(
+  identifier: string,
+  executor: (t: number) => number,
+  initial: number = 0,
+): Animator {
+  return Object.assign(executor, {
+    identifier,
+    initial,
+  });
 }

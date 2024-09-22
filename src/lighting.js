@@ -2,13 +2,13 @@
   Lighting module - controls lighting via ArtNet, by fetching commands from the server
 */
 
-const config = require('./config');
-const _ = require('logger');
-const fs = require('fs/promises');
-const axios = require('axios');
-const {join} = require('path');
-const {handle} = require('express/lib/application');
-const animationEffects = require('./animators');
+const config = require("./config");
+const _ = require("logger");
+const fs = require("fs/promises");
+const axios = require("axios");
+const { join } = require("path");
+const { handle } = require("express/lib/application");
+const animationEffects = require("./animators");
 
 /**
  * Set the minimum log level to BASE (the lowest level) so we see everything.
@@ -39,35 +39,36 @@ const effects = {};
  * @returns {Promise<void>}
  */
 async function loadFixtures() {
-    const fixtures = require('./fixtures');
-    for (const [group, fixture] of Object.entries(fixtures)) {
-        _.trace(`registering ${fixture.name} with addresses ${fixture.patch}`);
+  const fixtures = require("./fixtures");
+  for (const [group, fixture] of Object.entries(fixtures)) {
+    _.trace(`registering ${fixture.name} with addresses ${fixture.patch}`);
 
-        const entries = fixture.patch;
-        console.log("PREFIX OPTION: " + group);
-        if (!Object.values(entries).map((e) => Array.isArray(e)).reduce((prev, cur) => prev && cur)) {
-            for (const [prefix, addressConfig] of Object.entries(entries)) {
-
-                const {
-                    convert,
-                    commands
-                } = require(join(__dirname, 'fixture-profiles', fixture.profile))(group, addressConfig, effects);
-                mergers.push(convert);
-                COMMANDS.push(...commands);
-                _.trace('Adding commands: ', commands);
-            }
-        } else {
-            const {
-                convert,
-                commands
-            } = require(join(__dirname, 'fixture-profiles', fixture.profile))(undefined, entries, effects);
-            mergers.push(convert);
-            COMMANDS.push(...commands);
-            _.trace('Adding commands: ', commands);
-        }
+    const entries = fixture.patch;
+    console.log("PREFIX OPTION: " + group);
+    if (
+      !Object.values(entries)
+        .map((e) => Array.isArray(e))
+        .reduce((prev, cur) => prev && cur)
+    ) {
+      for (const [prefix, addressConfig] of Object.entries(entries)) {
+        const { convert, commands } = require(
+          join(__dirname, "fixture-profiles", fixture.profile),
+        )(group, addressConfig, effects);
+        mergers.push(convert);
+        COMMANDS.push(...commands);
+        _.trace("Adding commands: ", commands);
+      }
+    } else {
+      const { convert, commands } = require(
+        join(__dirname, "fixture-profiles", fixture.profile),
+      )(undefined, entries, effects);
+      mergers.push(convert);
+      COMMANDS.push(...commands);
+      _.trace("Adding commands: ", commands);
     }
+  }
 
-    _.trace('all profiles loaded, final commands:');
+  _.trace("all profiles loaded, final commands:");
 }
 
 /**
@@ -77,20 +78,20 @@ async function loadFixtures() {
  * @returns {Promise<void>}
  */
 async function enableAnimators() {
-    let animationTime = 0;
-    let animators = [];
+  let animationTime = 0;
+  let animators = [];
 
-    const animationHandler = () => {
-        if (++animationTime > 255) animationTime = 0;
+  const animationHandler = () => {
+    if (++animationTime > 255) animationTime = 0;
 
-        animators.forEach((f) => f(animationTime, effects));
-    };
-    setInterval(animationHandler, 10);
+    animators.forEach((f) => f(animationTime, effects));
+  };
+  setInterval(animationHandler, 10);
 
-    animationEffects.forEach((v) => {
-        animators.push(v);
-        effects[v.identifier] = v.initial ?? 0;
-    });
+  animationEffects.forEach((v) => {
+    animators.push(v);
+    effects[v.identifier] = v.initial ?? 0;
+  });
 }
 
 /**
@@ -98,16 +99,16 @@ async function enableAnimators() {
  * @returns {Promise<void>}
  */
 async function fetchCommands() {
-
-    axios.get(`${config.crowdcontrolServer}/getLightRequests.php`)
-        .then((response) => {
-            response.data.forEach((command) => {
-                handleCommand(command);
-            });
-        })
-        .catch((error) => {
-            console.error("Fetch Error:", error);
-        });
+  axios
+    .get(`${config.crowdcontrolServer}/getLightRequests.php`)
+    .then((response) => {
+      response.data.forEach((command) => {
+        handleCommand(command);
+      });
+    })
+    .catch((error) => {
+      console.error("Fetch Error:", error);
+    });
 }
 
 let activeCommands = [];
@@ -121,40 +122,46 @@ let activeCommands = [];
  * @returns
  */
 function handleCommand(command) {
-    const test = command.startsWith('-') ? command.substring(1) : command;
-    const matched = COMMANDS
-        .map((e) => typeof (e) === 'string' ? e.toLowerCase() === test.toLowerCase() : e.test(test))
-        .reduce((old, now) => old || now);
+  const test = command.startsWith("-") ? command.substring(1) : command;
+  const matched = COMMANDS.map((e) =>
+    typeof e === "string"
+      ? e.toLowerCase() === test.toLowerCase()
+      : e.test(test),
+  ).reduce((old, now) => old || now);
 
-    if (!matched) {
-        _.warn(`message "${command}" rejected because it is not contained within the valid commands`);
-        return;
-    }
-
-    if (command.startsWith('-')) {
-        const toRemove = command.substring(1);
-        activeCommands = activeCommands.filter((e) => e !== toRemove);
-
-        _.debug(`removed command ${toRemove}`);
-
-        return;
-    }
-
-    // Find all conflicting commands
-    const [key, action] = command.split('.');
-    const conflictKey = `${key}.${action}`;
-    // const conflictKey = command.substr(0, command.lastIndexOf('.') + 1);
-    const resultant = [].concat(
-        // All active commands that conflict
-        activeCommands.filter((e) => !e.startsWith(conflictKey)),
-        // Plus the new command
-        [command],
+  if (!matched) {
+    _.warn(
+      `message "${command}" rejected because it is not contained within the valid commands`,
     );
+    return;
+  }
 
-    _.info(`Command: ${command} has caused a change of ${resultant.length - activeCommands.length} instructions`);
+  if (command.startsWith("-")) {
+    const toRemove = command.substring(1);
+    activeCommands = activeCommands.filter((e) => e !== toRemove);
 
-    activeCommands = resultant;
-    console.trace(activeCommands);
+    _.debug(`removed command ${toRemove}`);
+
+    return;
+  }
+
+  // Find all conflicting commands
+  const [key, action] = command.split(".");
+  const conflictKey = `${key}.${action}`;
+  // const conflictKey = command.substr(0, command.lastIndexOf('.') + 1);
+  const resultant = [].concat(
+    // All active commands that conflict
+    activeCommands.filter((e) => !e.startsWith(conflictKey)),
+    // Plus the new command
+    [command],
+  );
+
+  _.info(
+    `Command: ${command} has caused a change of ${resultant.length - activeCommands.length} instructions`,
+  );
+
+  activeCommands = resultant;
+  console.trace(activeCommands);
 }
 
 const lastOutgoingData = {};
@@ -163,50 +170,42 @@ const lastOutgoingData = {};
  * Sends artnet data based on the activeCommands
  */
 function sendArtnetUpdate() {
-    // TODO: determine what universes to send to based on config from somewhere
-    for (let universe = 0; universe < 50; universe++) {
-        const commands = activeCommands
-            .map((command) => mergers.map((merger) => merger(universe, command)))
-            .flat()
-            .reduce(
-                (prev, cur) => Object.assign(prev, cur),
-                {}
-            );
-        if (Object.keys(commands).length === 0) {
-            continue;
-        }
-
-        // array of each channel value in universe
-        var dmx = lastOutgoingData[universe] ?? Array(512).fill(0);
-
-        Object.keys(commands).forEach((k) => {
-            dmx[k] = commands[k];
-        });
-
-        artnet.set(universe, 1, dmx);
-
-        lastOutgoingData[universe] = dmx;
+  // TODO: determine what universes to send to based on config from somewhere
+  for (let universe = 0; universe < 50; universe++) {
+    const commands = activeCommands
+      .map((command) => mergers.map((merger) => merger(universe, command)))
+      .flat()
+      .reduce((prev, cur) => Object.assign(prev, cur), {});
+    if (Object.keys(commands).length === 0) {
+      continue;
     }
-}
 
+    // array of each channel value in universe
+    var dmx = lastOutgoingData[universe] ?? Array(512).fill(0);
+
+    Object.keys(commands).forEach((k) => {
+      dmx[k] = commands[k];
+    });
+
+    artnet.set(universe, 1, dmx);
+
+    lastOutgoingData[universe] = dmx;
+  }
+}
 
 var options = {
-    iface: config.lightingInterface,
+  iface: config.lightingInterface,
 };
-const artnet = require('artnet')(options);
-
+const artnet = require("artnet")(options);
 
 module.exports = async () => {
-    console.log("Lighting module initialized");
+  console.log("Lighting module initialized");
 
-    await loadFixtures()
-        .then(enableAnimators)
-        .catch(console.error);
+  await loadFixtures().then(enableAnimators).catch(console.error);
 
-    console.log("Begin fetching commands");
-    setInterval(fetchCommands, 100);
+  console.log("Begin fetching commands");
+  setInterval(fetchCommands, 100);
 
-    console.log("Begin outputting artnet")
-    setInterval(sendArtnetUpdate, 1);
-
-}
+  console.log("Begin outputting artnet");
+  setInterval(sendArtnetUpdate, 1);
+};
