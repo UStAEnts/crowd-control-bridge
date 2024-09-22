@@ -60,9 +60,11 @@ export class Universe {
 export class ChannelUniverse<T extends Record<string, number>> {
   private readonly _channels: T;
   private _universe: Universe;
+  private _index: number;
 
-  constructor(channels: T) {
+  constructor(channels: T, index: number) {
     this._channels = channels;
+    this._index = index;
   }
 
   assignMany(patches: number[], channels: Partial<Record<keyof T, number>>) {
@@ -79,5 +81,9 @@ export class ChannelUniverse<T extends Record<string, number>> {
 
   toData() {
     return this._universe.toData();
+  }
+
+  get index() {
+    return this._index;
   }
 }

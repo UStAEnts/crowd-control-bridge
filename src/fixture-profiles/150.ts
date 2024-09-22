@@ -108,7 +108,7 @@ module.exports = function (prefix, addresses, effects) {
 
     if (key !== prefix) return {};
 
-    const universeData = new ChannelUniverse(channels);
+    const universeData = new ChannelUniverse(channels, universe);
     const universeAddresses = channelsForUniverse(addresses, universe);
 
     if (action === "colour")
