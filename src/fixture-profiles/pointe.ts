@@ -2,7 +2,7 @@ import {
   channelsForUniverse,
   ChannelUniverse,
   GeneratedProfile,
-  Profile,
+  Patch,
 } from "./profile";
 
 const _ = require("logger");
@@ -43,7 +43,11 @@ const colors = {
   UV: 119,
 };
 
-export default function (prefix, addresses, effects) {
+export default function (
+  prefix: string,
+  addresses: Patch,
+  effects: Record<string, number>,
+) {
   prefix = prefix || "robe";
 
   _.trace(`initialised pointe with prefix "${prefix}"`, addresses);
@@ -53,9 +57,10 @@ export default function (prefix, addresses, effects) {
     universe: ChannelUniverse<typeof channels>,
     color: string,
   ) {
-    if (colors.hasOwnProperty(color.toUpperCase())) {
+    const key = color.toUpperCase();
+    if (key in colors) {
       universe.assignMany(addresses, {
-        COLOR: colors[color.toUpperCase()] * 0.392222222,
+        COLOR: colors[key as keyof typeof colors] * 0.392222222,
       });
     }
   }

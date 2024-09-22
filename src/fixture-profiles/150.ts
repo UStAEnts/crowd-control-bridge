@@ -2,7 +2,7 @@ import {
   channelsForUniverse,
   ChannelUniverse,
   GeneratedProfile,
-  Profile,
+  Patch,
 } from "./profile";
 
 const _ = require("logger");
@@ -32,7 +32,11 @@ const channels = {
   INTENSITY_FINE: 21,
 } as const;
 
-export default function (prefix, addresses, effects) {
+export default function (
+  prefix: string,
+  addresses: Patch,
+  effects: Record<string, number>,
+) {
   prefix = prefix || "150s";
 
   _.trace(`initialised 150s with prefix "${prefix}"`, addresses);
@@ -92,7 +96,7 @@ export default function (prefix, addresses, effects) {
   function positionToDMX(
     addresses: number[],
     universe: ChannelUniverse<typeof channels>,
-    position,
+    position: string,
   ) {
     if (position === "home") {
       universe.assignMany(addresses, { PAN: 128, TILT: 128 });

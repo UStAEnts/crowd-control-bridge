@@ -2,7 +2,7 @@ import {
   channelsForUniverse,
   ChannelUniverse,
   GeneratedProfile,
-  Profile,
+  Patch,
 } from "./profile";
 
 const _ = require("logger");
@@ -39,7 +39,11 @@ const channels = {
 
 // 3.53 = 9 * x
 
-export default function (prefix, addresses, effects) {
+export default function (
+  prefix: string,
+  addresses: Patch,
+  effects: Record<string, number>,
+) {
   prefix = prefix || "spikies";
 
   _.trace(`initialised spikie with prefix "${prefix}"`, addresses);
@@ -47,7 +51,7 @@ export default function (prefix, addresses, effects) {
   function colorToDMX(
     addresses: number[],
     universe: ChannelUniverse<typeof channels>,
-    color,
+    color: string[],
   ) {
     if (color.length >= 3) {
       universe.assignMany(addresses, {
@@ -62,7 +66,7 @@ export default function (prefix, addresses, effects) {
   function effectsToDMX(
     addresses: number[],
     universe: ChannelUniverse<typeof channels>,
-    effect,
+    effect: string,
   ) {
     if (effect === "strobe") {
       universe.assignMany(addresses, {
@@ -88,7 +92,7 @@ export default function (prefix, addresses, effects) {
   function intensityToDMX(
     addresses: number[],
     universe: ChannelUniverse<typeof channels>,
-    intensity,
+    intensity: string,
   ) {
     try {
       const number = parseInt(intensity, 10);
@@ -105,7 +109,7 @@ export default function (prefix, addresses, effects) {
   function positionToDMX(
     addresses: number[],
     universe: ChannelUniverse<typeof channels>,
-    position,
+    position: string,
   ) {
     if (position === "home") {
       universe.assignMany(addresses, {
@@ -115,7 +119,10 @@ export default function (prefix, addresses, effects) {
     }
   }
 
-  function commandToDMX(universe, command): Record<number, number> {
+  function commandToDMX(
+    universe: number,
+    command: string,
+  ): Record<number, number> {
     const parts = command.toLowerCase().split(".");
     const [key, action, ...remainder] = parts;
 

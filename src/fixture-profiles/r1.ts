@@ -2,7 +2,7 @@ import {
   channelsForUniverse,
   ChannelUniverse,
   GeneratedProfile,
-  Profile,
+  Patch,
 } from "./profile";
 
 const _ = require("logger");
@@ -60,7 +60,11 @@ const gobo1 = {
 
 // 3.53 = 9 * x
 
-export default function (prefix, addresses, effects) {
+export default function (
+  prefix: string,
+  addresses: Patch,
+  effects: Record<string, number>,
+) {
   prefix = prefix || "r1";
 
   _.trace(`initialised r1s with prefix "${prefix}"`, addresses);
@@ -70,15 +74,18 @@ export default function (prefix, addresses, effects) {
     universe: ChannelUniverse<typeof channels>,
     color: string,
   ) {
-    if (colors.hasOwnProperty(color.toUpperCase())) {
-      universe.assignMany(addresses, { COLOR: colors[color.toUpperCase()] });
+    const key = color.toUpperCase();
+    if (key in colors) {
+      universe.assignMany(addresses, {
+        COLOR: colors[key as keyof typeof colors],
+      });
     }
   }
 
   function effectsToDMX(
     addresses: number[],
     universe: ChannelUniverse<typeof channels>,
-    effect,
+    effect: string,
   ) {
     if (effect === "strobe") {
       universe.assignMany(addresses, { SHUTTER: (210 / 255) * 100 });
@@ -99,7 +106,7 @@ export default function (prefix, addresses, effects) {
   function intensityToDMX(
     addresses: number[],
     universe: ChannelUniverse<typeof channels>,
-    intensity,
+    intensity: string,
   ) {
     if (intensity === "strobe") {
       universe.assignMany(addresses, { SHUTTER: (210 / 255) * 100 });
@@ -120,17 +127,20 @@ export default function (prefix, addresses, effects) {
   function goboToDMX(
     addresses: number[],
     universe: ChannelUniverse<typeof channels>,
-    gobo,
+    gobo: string,
   ) {
-    if (gobo1.hasOwnProperty(gobo.toUpperCase())) {
-      universe.assignMany(addresses, { GOBO: gobo1[gobo.toUpperCase()] });
+    const key = gobo.toUpperCase();
+    if (key in gobo1) {
+      universe.assignMany(addresses, {
+        GOBO: gobo1[key as keyof typeof gobo1],
+      });
     }
   }
 
   function positionToDMX(
     addresses: number[],
     universe: ChannelUniverse<typeof channels>,
-    position,
+    position: string,
   ) {
     if (position === "still") {
       universe.assignMany(addresses, {
@@ -147,7 +157,10 @@ export default function (prefix, addresses, effects) {
     }
   }
 
-  function commandToDMX(universe, command): Record<number, number> {
+  function commandToDMX(
+    universe: number,
+    command: string,
+  ): Record<number, number> {
     const parts = command.toLowerCase().split(".");
     if (parts[0] !== prefix) return {};
 

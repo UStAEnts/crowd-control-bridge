@@ -1,13 +1,13 @@
 import {
   channelsForUniverse,
   GeneratedProfile,
-  Profile,
+  Patch,
   Universe,
 } from "./profile";
 
 const _ = require("logger");
 
-const channels = {
+const channels: Record<number, Record<string, number>> = {
   0: {
     RED: 0,
     GREEN: 1,
@@ -58,19 +58,19 @@ const channels = {
   },
 };
 
-export default function (prefix, addresses) {
+export default function (prefix: string, addresses: Patch) {
   prefix = prefix || "tubes";
 
   _.trace(`initialised titan tube with prefix "${prefix}"`, addresses);
 
-  const intensityByUniverse = {};
-  let lastSentColours = {};
+  const intensityByUniverse: Record<string, number> = {};
+  let lastSentColours: Record<number, string[]> = {};
 
   function colorToDMX(
     addresses: number[],
     universeIndex: number,
     universe: Universe,
-    color,
+    color: string[] | undefined,
   ) {
     if (color === undefined) {
       color = lastSentColours[universeIndex] || [0, 0, 0];
@@ -83,7 +83,8 @@ export default function (prefix, addresses) {
       const green = parseInt(color[1], 10);
       const blue = parseInt(color[2], 10);
 
-      for (let cell in Object.keys(channels)) {
+      const cells = Object.keys(channels) as unknown as number[];
+      for (let cell of cells) {
         universe.assignMany(addresses, {
           [channels[cell].RED]: red * intensityMultiplier,
           [channels[cell].GREEN]: green * intensityMultiplier,
@@ -91,7 +92,7 @@ export default function (prefix, addresses) {
         });
       }
 
-      lastSentColours[universeIndex] = [red, green, blue];
+      lastSentColours[universeIndex] = [color[0], color[1], color[2]];
     }
   }
 
@@ -99,7 +100,7 @@ export default function (prefix, addresses) {
     addresses: number[],
     universeIndex: number,
     universe: Universe,
-    intensity,
+    intensity: string,
   ) {
     intensityByUniverse[universeIndex] = parseInt(intensity, 10) / 255;
   }
@@ -108,7 +109,10 @@ export default function (prefix, addresses) {
    * @param universe {number}
    * @param command {string}
    */
-  function commandToDMX(universe, command): Record<number, number> {
+  function commandToDMX(
+    universe: number,
+    command: string,
+  ): Record<number, number> {
     const parts = command.toLowerCase().split(".");
     const [key, action, ...remainder] = parts;
 

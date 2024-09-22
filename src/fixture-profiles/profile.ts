@@ -1,10 +1,12 @@
+export type Patch = Record<number, number[]>;
+
 /**
  * A profile is a generator function which takes a prefix (the name of the group to
  * use in commands), the patch map, and the current state of all stateless effects
  */
 export type Profile = (
   prefix: string,
-  addresses: Record<number, number[]>,
+  addresses: Patch,
   effects: Record<string, number>,
 ) => GeneratedProfile;
 
@@ -35,6 +37,14 @@ export function channelsForUniverse(
   return patch[universe] ?? [];
 }
 
+type Entries<T> = {
+  [K in keyof T]: [K, T[K]];
+}[keyof T][];
+
+function pureEntries<T extends object>(entity: T): Entries<T> {
+  return Object.entries(entity) as unknown as Entries<T>;
+}
+
 export class Universe {
   private _data: Record<number, number> = {};
 
@@ -54,7 +64,7 @@ export class Universe {
 
   assignMany(patches: number[], offsetValues: Record<number, number>) {
     patches.forEach((a) =>
-      (Object.entries(offsetValues) as [number, number][]).forEach((entry) =>
+      pureEntries(offsetValues).forEach((entry) =>
         this.assign8Bit(a, entry[0], entry[1]),
       ),
     );
@@ -67,7 +77,7 @@ export class Universe {
 
 export class ChannelUniverse<T extends Record<string, number>> {
   private readonly _channels: T;
-  private _universe: Universe;
+  private _universe: Universe = new Universe();
   private _index: number;
 
   constructor(channels: T, index: number) {
@@ -77,9 +87,9 @@ export class ChannelUniverse<T extends Record<string, number>> {
 
   assignMany(patches: number[], channels: Partial<Record<keyof T, number>>) {
     patches.forEach((a) =>
-      Object.entries(channels).forEach((entry) =>
-        this.assignChannel(a, entry[0], entry[1]),
-      ),
+      pureEntries(channels)
+        .filter((e) => e[1])
+        .forEach((entry) => this.assignChannel(a, entry[0], entry[1]!)),
     );
   }
 
