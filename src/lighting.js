@@ -6,8 +6,9 @@ const config = require('./config');
 const _ = require('logger');
 const fs = require('fs/promises');
 const axios = require('axios');
-const { join } = require('path');
-const { handle } = require('express/lib/application');
+const {join} = require('path');
+const {handle} = require('express/lib/application');
+const animationEffects = require('./animators');
 
 /**
  * Set the minimum log level to BASE (the lowest level) so we see everything.
@@ -46,14 +47,20 @@ async function loadFixtures() {
         console.log("PREFIX OPTION: " + group);
         if (!Object.values(entries).map((e) => Array.isArray(e)).reduce((prev, cur) => prev && cur)) {
             for (const [prefix, addressConfig] of Object.entries(entries)) {
-                
-                const {convert, commands} = require(join(__dirname, 'fixture-profiles', fixture.profile))(group, addressConfig, effects);
+
+                const {
+                    convert,
+                    commands
+                } = require(join(__dirname, 'fixture-profiles', fixture.profile))(group, addressConfig, effects);
                 mergers.push(convert);
                 COMMANDS.push(...commands);
                 _.trace('Adding commands: ', commands);
             }
         } else {
-            const {convert, commands} = require(join(__dirname, 'fixture-profiles', fixture.profile))(undefined, entries, effects);
+            const {
+                convert,
+                commands
+            } = require(join(__dirname, 'fixture-profiles', fixture.profile))(undefined, entries, effects);
             mergers.push(convert);
             COMMANDS.push(...commands);
             _.trace('Adding commands: ', commands);
@@ -64,6 +71,7 @@ async function loadFixtures() {
 }
 
 /**
+ * Starts executing all animators. Animators are stati
  * Finds all animator files and requires them pushing their executors and creating the initial values in the effects
  * object. Animator functions will be called every 10ms.
  * @returns {Promise<void>}
@@ -79,12 +87,9 @@ async function enableAnimators() {
     };
     setInterval(animationHandler, 10);
 
-    const files = await fs.readdir(join(__dirname, 'animators'));
-    files.filter((name) => name.endsWith('.js')).forEach((name) => {
-        const {executor, index, initial} = require(join(__dirname, 'animators', name));
-
-        animators.push(executor);
-        effects[index] = initial;
+    animationEffects.forEach((v) => {
+        animators.push(v);
+        effects[v.identifier] = v.initial ?? 0;
     });
 }
 
@@ -95,14 +100,14 @@ async function enableAnimators() {
 async function fetchCommands() {
 
     axios.get(`${config.crowdcontrolServer}/getLightRequests.php`)
-    .then((response) => {
-        response.data.forEach((command) => {
-            handleCommand(command);
+        .then((response) => {
+            response.data.forEach((command) => {
+                handleCommand(command);
+            });
+        })
+        .catch((error) => {
+            console.error("Fetch Error:", error);
         });
-    })
-    .catch((error) => {
-        console.error("Fetch Error:", error);
-    });
 }
 
 let activeCommands = [];
@@ -112,8 +117,8 @@ let activeCommands = [];
  * acceptable commands (without a '-' symbol if present). It will remove the command if it is prefixed with '-' and if
  * not it will replace all conflicting commands (with the same two part prefix) to prevent overlapping instructions. If
  * it is not found or accepted it will reject it.
- * @param command 
- * @returns 
+ * @param command
+ * @returns
  */
 function handleCommand(command) {
     const test = command.startsWith('-') ? command.substring(1) : command;
@@ -203,5 +208,5 @@ module.exports = async () => {
 
     console.log("Begin outputting artnet")
     setInterval(sendArtnetUpdate, 1);
-    
+
 }
