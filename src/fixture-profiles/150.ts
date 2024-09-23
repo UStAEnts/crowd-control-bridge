@@ -46,11 +46,33 @@ export default function (
     universe: ChannelUniverse<typeof channels>,
     color: string[],
   ) {
-    if (color.length >= 3) {
+    if (color.length === 3 || color.length === 4) {
+      const red = parseInt(color[0], 10);
+      const green = parseInt(color[1], 10);
+      const blue = parseInt(color[2], 10);
+      const white = color.length === 4 ? parseInt(color[3], 10) : undefined;
+
+      if (
+        red < 0 ||
+        red > 255 ||
+        green < 0 ||
+        green > 255 ||
+        blue < 0 ||
+        blue > 255 ||
+        (white !== undefined && (white < 0 || white > 255))
+      ) {
+        return;
+      }
+
+      // If white is specified, we generate {WHITE: value} and spread that below, if its not we spread an empty object
+      // which does nothing
+      const whiteExpand = white === undefined ? {} : { WHITE: white };
+
       universe.assignMany(addresses, {
         RED: parseInt(color[0], 10),
         GREEN: parseInt(color[1], 10),
         BLUE: parseInt(color[2], 10),
+        ...whiteExpand,
       });
     }
   }
@@ -62,12 +84,18 @@ export default function (
   ) {
     switch (effect) {
       case "strobe":
-        universe.assignMany(addresses, { SHUTTER: (210 / 255) * 100 });
+        // Shutter was previously implemented as (210 / 255) * 100 = 82.35294117647059 which mapped into
+        // "64 - 95 Strobe-effect from slow to fast proportional" in the manual
+        // (https://www.enlx.co.uk/sites/default/files/Robe%20LEDBeam%20150%20Manual.pdf)
+        // Assuming 210 was a target, this would place it in
+        // "192 - 223 Random strobe-effect from slow to fast proportional". If you are here because you were expecting
+        // a constant speed strobe, just change this back to anything in the range before.
+        universe.assignMany(addresses, { SHUTTER: 210 });
         break;
       case "move":
         universe.assignMany(addresses, {
-          PAN: effects.sin,
-          TILT: 100 - effects.SIN,
+          PAN: (effects.sin / 100) * 255,
+          TILT: (effects.isin / 100) * 255,
         });
         break;
       case "clear":
@@ -83,6 +111,13 @@ export default function (
   ) {
     try {
       const number = parseInt(intensity, 10);
+
+      if (number < 0 || number > 255) {
+        return;
+      }
+
+      console.log(number);
+
       if (!isNaN(number)) {
         universe.assignMany(addresses, {
           INTENSITY: number,

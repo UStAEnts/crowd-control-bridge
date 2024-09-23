@@ -1,3 +1,3 @@
-import sin from "./sin";
+import { sin, inverseSin } from "./sin";
 
-export default [sin] as const;
+export default [sin, inverseSin] as const;

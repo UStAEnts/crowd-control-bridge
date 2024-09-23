@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest",
     "start": "tsc && node dist/index.js",
     "dev": "tsx watch src/index.ts"
   },
@@ -15,9 +15,12 @@
   },
   "devDependencies": {
     "@types/node": "^22.5.5",
+    "@vitest/coverage-v8": "^2.1.1",
+    "nodemon": "^3.1.0",
     "prettier": "^3.3.3",
     "typescript": "^5.6.2",
-    "tsx": "^4.19.1"
+    "tsx": "^4.19.1",
+    "vitest":  "^2.1.1"
   },
   "dependencies": {
     "artnet": "^1.4.0",
