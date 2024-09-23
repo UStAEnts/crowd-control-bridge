@@ -24,3 +24,15 @@ testCommandSet(() => generateBasicPatch(oneFifties), "test.colour.$$", {
   "255.255": exclusively({}),
   green: exclusively({}),
 });
+
+testCommandSet(() => generateBasicPatch(oneFifties), "test.effect.$$", {
+  strobe: partially({ 19: 210 }),
+  move: partially({ 0: 0, 2: 0 }),
+  clear: exclusively({ 0: 128, 2: 128 }),
+  unknown: exclusively({}),
+});
+
+testCommandSet(() => generateBasicPatch(oneFifties), "test.position.$$", {
+  home: exclusively({ 0: 128, 2: 128 }),
+  unknown: exclusively({}),
+});
